@@ -26,6 +26,7 @@ public class ArticlesController {
                                      @RequestPart (required = false) List<MultipartFile> multipartFile) throws IOException {
         return articlesService.postArticles(multipartFile, articlesDto);
     }
+
     //메인 페이지 작성글 목록 조회
     @GetMapping("")
     public List<ArticlesRequestDto> readAllPost() {

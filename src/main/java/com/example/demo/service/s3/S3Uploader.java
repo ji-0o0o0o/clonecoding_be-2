@@ -29,7 +29,7 @@ public class S3Uploader {
 	@Value("${cloud.aws.s3.bucket}")
 	public String bucket;  // S3 버킷 이름
 
-	public String upload(List<MultipartFile> multipartFile) throws IOException {
+	public String upload(MultipartFile multipartFile) throws IOException {
 		File uploadFile = convert(multipartFile)  // 파일 변환할 수 없으면 에러
 				.orElseThrow(() -> new IllegalArgumentException("MultipartFile -> 파일 변환 실패"));
 
@@ -64,22 +64,18 @@ public class S3Uploader {
 	}
 
 	// 로컬에 파일 업로드 하기
-	private Optional<File> convert(List<MultipartFile> file) throws IOException {
-		for (MultipartFile multipartFile : file) {
-
-			File convertFile = new File(System.getProperty("user.dir") + "/" + multipartFile.getOriginalFilename());     // 현재 프로젝트 절대경로
-			if (convertFile.createNewFile()) {
-				try (FileOutputStream fos = new FileOutputStream(convertFile)) {
-					fos.write(multipartFile.getBytes());
-				}
+	private Optional<File> convert(MultipartFile file) throws IOException {
+		File convertFile = new File(System.getProperty("user.dir") + "/" + file.getOriginalFilename());     // 현재 프로젝트 절대경로
+		if (convertFile.createNewFile()) {
+			try (FileOutputStream fos = new FileOutputStream(convertFile)) {
+				fos.write(file.getBytes());
 				return Optional.of(convertFile);
 			}
-			return Optional.empty();
 
 		}
-		return Optional.empty();
+		return null;
 	}
-}
+
 //	public void remove(String filename) {
 //
 //		DeleteObjectRequest request = new DeleteObjectRequest(bucket, filename);
@@ -107,4 +103,4 @@ public class S3Uploader {
 //        return fileName;
 //    }
 
-
+}

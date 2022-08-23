@@ -44,11 +44,11 @@ public class Articles extends TimeStamped {
 //    private Boolean isArticlesLike = false;
 
 
-    public Articles(ArticlesDto articlesDto, String image, String userName) {
-        this.content = articlesDto.getContent();
-        this.image = image;
-        this.userName = userName;
-    }
+//    public Articles(ArticlesDto articlesDto, String userName) {
+//        this.content = articlesDto.getContent();
+////        this.image = image;
+//        this.userName = userName;
+//    }
 
     public Articles(ArticlesDto articlesDto,String userName) {
         this.content = articlesDto.getContent();
@@ -66,6 +66,10 @@ public class Articles extends TimeStamped {
     @OneToMany(mappedBy = "articles",cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<CommentEntity> commentList = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<ImagePost> imagePosts = new ArrayList<>();
 
     public void addComment(CommentEntity comment) {
         this.commentList.add(comment);

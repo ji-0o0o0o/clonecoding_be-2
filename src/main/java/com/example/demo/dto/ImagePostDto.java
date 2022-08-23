@@ -7,4 +7,6 @@ import lombok.Setter;
 @Setter
 public class ImagePostDto {
 
+    private String image;
+
 }
