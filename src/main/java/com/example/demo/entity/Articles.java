@@ -2,13 +2,10 @@ package com.example.demo.entity;
 
 import com.example.demo.dto.ArticlesDto;
 import com.example.demo.util.TimeStamped;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import javax.persistence.*;
-import javax.xml.stream.events.Comment;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +35,18 @@ public class Articles extends TimeStamped {
     @Column
     private long commentCount=0L;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "articles")
+    @JsonManagedReference
+    private List<ImagePostEntity> imageList;
+
+    @OneToMany(mappedBy = "articles",cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<CommentEntity> commentList = new ArrayList<>();
+
+
+
+
+
 //    @JoinColumn
 //    @JsonBackReference
 //    @JsonIgnore
@@ -48,6 +57,19 @@ public class Articles extends TimeStamped {
 //        this.content = articlesDto.getContent();
 ////        this.image = image;
 //        this.userName = userName;
+//    }
+
+    public Articles(ArticlesDto articlesDto,String userName, List<ImagePostEntity> imageList) {
+        this.content = articlesDto.getContent();
+        this.userName = userName;
+        this.imageList = imageList;
+    }
+
+
+//    public Articles(ArticlesDto articlesDto,String userName, List<ImagePostEntity> imageList) {
+//        this.content = articlesDto.getContent();
+//        this.userName = userName;
+//        this.imageList = imageList;
 //    }
 
     public Articles(ArticlesDto articlesDto,String userName) {
@@ -63,13 +85,6 @@ public class Articles extends TimeStamped {
 //        this.image = url;
 //    }
 
-    @OneToMany(mappedBy = "articles",cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<CommentEntity> commentList = new ArrayList<>();
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<ImagePost> imagePosts = new ArrayList<>();
 
     public void addComment(CommentEntity comment) {
         this.commentList.add(comment);

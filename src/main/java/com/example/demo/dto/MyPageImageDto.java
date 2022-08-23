@@ -6,12 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.access.annotation.Secured;
 
+import java.util.List;
+
 @Builder
 @Getter
 @Setter
 public class MyPageImageDto {
 
-    private String image;
+    private List<String> image;
     private Long articlesId;
 
 }

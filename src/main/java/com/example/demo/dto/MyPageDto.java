@@ -15,6 +15,6 @@ public class MyPageDto {
 
     private int articlesCount;
 
-    private List<MyPageImageDto> imageList;
+    private List<String> image;
 
 }
