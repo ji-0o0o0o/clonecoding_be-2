@@ -21,7 +21,7 @@ public class ArticlesRequestDto {
     private Long articlesId;
     private List<ImagePostEntity> images;
     private List<String> image;
-    private List<CommentResponDto> commentList;
+    private List<CommentEntity> commentList;
 
     public ArticlesRequestDto(Articles articles, String createAt) {
         this.articlesId = articles.getArticlesId();
@@ -52,15 +52,15 @@ public class ArticlesRequestDto {
         this.CommentCount = articles.getCommentCount();
     }
 
-    public ArticlesRequestDto(Articles articles, List<String> imageList, String createAt, List<CommentResponDto> commentEntities) {
+    public ArticlesRequestDto(Articles articles,String createAt) {
         this.articlesId = articles.getArticlesId();
-        this.image = imageList;
+        this.images = articles.getImageList();
         this.userName = articles.getUserName();
         this.likeCount = articles.getLikeCount();
         this.content = articles.getContent();
         this.createAt = createAt;
         this.CommentCount = articles.getCommentCount();
-        this.commentList = commentEntities;
+        this.commentList = articles.getCommentList();
     }
 
 }

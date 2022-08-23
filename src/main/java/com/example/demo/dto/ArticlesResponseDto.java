@@ -46,4 +46,7 @@ public class ArticlesResponseDto {
         this.articlesId = articles.getArticlesId();
         this.image = imagePostEntities;
     }
+
+
+
 }
