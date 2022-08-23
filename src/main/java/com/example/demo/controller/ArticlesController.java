@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.dto.ArticleDeleteDto;
 import com.example.demo.dto.ArticlesDto;
 import com.example.demo.dto.ArticlesRequestDto;
 import com.example.demo.dto.ArticlesResponseDto;
@@ -49,7 +50,7 @@ public class ArticlesController {
     //메인 페이지 삭제
 
     @DeleteMapping("/{articlesId}")
-    public String deleteArticles(@PathVariable Long articlesId) {
+    public ArticleDeleteDto deleteArticles(@PathVariable Long articlesId) {
         return articlesService.deleteArticles(articlesId);
     }
 

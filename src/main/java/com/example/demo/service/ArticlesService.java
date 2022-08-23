@@ -13,9 +13,6 @@ import com.example.demo.util.Time;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import sun.awt.image.ImageRepresentation;
-
-import javax.imageio.ImageReader;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -150,15 +147,18 @@ public class ArticlesService {
     }
     //메인 페이지 삭제
 
-    public String deleteArticles(Long articlesId) {
+    public ArticleDeleteDto deleteArticles(Long articlesId) {
         Articles articles = articlesRepository.findById(articlesId)
                 .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
         String user = userService.getSigningUserId();
 
+        ArticleDeleteDto articleDeleteDto = new ArticleDeleteDto(articlesId, "삭제가 실패하였습니다.");
+        ArticleDeleteDto articleDeleteDto1 = new ArticleDeleteDto(articlesId, "삭제가 되었습니다.");
+
         if(user.equals(articles.getUserName())){
             articlesRepository.delete(articles);
-            return "삭제가 되었습니다.";
-        }else return "삭제가 실패하였습니다.";
+            return articleDeleteDto1;
+        }else return  articleDeleteDto;
     }
 
 
