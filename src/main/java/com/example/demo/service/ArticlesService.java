@@ -141,6 +141,32 @@ public class ArticlesService {
         }else return "삭제가 실패하였습니다.";
     }
 
+
+    //마이페이지 상세페이지
+    public ArticlesResponseDto readMypage(Long articlesId) {
+
+        Articles articles = articlesRepository.findById(articlesId)
+                .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
+
+//        작성시간
+
+        List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
+        List<CommentResponDto> commentBox = new ArrayList<>();
+
+        long articlesRightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
+
+
+        for (CommentEntity datas : commentList) {
+            long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
+            CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+
+            commentBox.add(commentResponDto);
+
+        }
+
+        ArticlesResponseDto articlesResponseDto = new ArticlesResponseDto(articles, time.times(articlesRightNow), commentBox);
+        return articlesResponseDto;
+
     public MyPageDto getMypage() {
         List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
         log.info("{}", datas);
@@ -164,6 +190,7 @@ public class ArticlesService {
                 .build();
 
         return myPageDto;
+
     }
 }
 
