@@ -3,43 +3,40 @@ package com.example.demo.service;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Articles;
 import com.example.demo.entity.CommentEntity;
-import com.example.demo.entity.User;
 import com.example.demo.repository.ArticlesRepository;
 import com.example.demo.repository.CommentRepository;
+import com.example.demo.repository.LikeRepository;
 import com.example.demo.service.s3.S3Uploader;
 import com.example.demo.util.Time;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 @Service
+@Slf4j
 public class ArticlesService {
 
     private final ArticlesRepository articlesRepository;
-
     private final CommentRepository commentRepository;
     private final UserService userService;
     private final S3Uploader s3Uploader;
     private final Time time;
-
+    private final LikeRepository likeRepository;
 
     public ArticlesService(ArticlesRepository articlesRepository,
                            CommentRepository commentRepository, UserService userService,
-                           S3Uploader s3Uploader, Time time) {
+                           S3Uploader s3Uploader, Time time, LikeRepository likeRepository) {
         this.articlesRepository = articlesRepository;
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.s3Uploader = s3Uploader;
         this.time = time;
+        this.likeRepository = likeRepository;
     }
 
     private Long getTime() {
@@ -75,11 +72,7 @@ public class ArticlesService {
             ArticlesRequestDto articlesRequestDto = new ArticlesRequestDto(articles, time.times(rightNow));
             return articlesRequestDto;
         }
-
-
-
     }
-
 
 
     // 메인 페이지 작성글 목록 조회
@@ -87,9 +80,7 @@ public class ArticlesService {
         List<Articles> articlesList = articlesRepository.findAllByOrderByCreatedAtDesc();
         List<ArticlesRequestDto> articlesRequestDtoList = new ArrayList<>();
 
-
         for (Articles articles:articlesList) {
-
 
         //  작성시간 조회
             long rightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
@@ -104,13 +95,10 @@ public class ArticlesService {
         Articles articles = articlesRepository.findById(articlesId)
                 .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
 
-//        작성시간
-
         List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
         List<CommentResponDto> commentBox = new ArrayList<>();
 
         long articlesRightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
-
 
         for (CommentEntity datas : commentList) {
             long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
@@ -126,10 +114,7 @@ public class ArticlesService {
 
     }
 
-
-
     //메인 페이지 수정
-
     @Transactional
     public ArticlesRequestDto updateArticles(Long articlesId, ArticlesDto articlesDto) {
         Articles articles = articlesRepository.findById(articlesId)
@@ -156,6 +141,7 @@ public class ArticlesService {
         }else return "삭제가 실패하였습니다.";
     }
 
+
     //마이페이지 상세페이지
     public ArticlesResponseDto readMypage(Long articlesId) {
 
@@ -180,6 +166,31 @@ public class ArticlesService {
 
         ArticlesResponseDto articlesResponseDto = new ArticlesResponseDto(articles, time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
+
+    public MyPageDto getMypage() {
+        List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
+        log.info("{}", datas);
+
+        List<MyPageImageDto> box = new ArrayList<>();
+        for (Articles data : datas) {
+            System.out.println(data.getImage());
+            MyPageImageDto myPageImageDto = MyPageImageDto.builder()
+                    .articlesId(data.getArticlesId())
+                    .image(data.getImage())
+                    .build();
+            box.add(myPageImageDto);
+        }
+
+
+
+        MyPageDto myPageDto = MyPageDto.builder()
+                .articlesCount(datas.size())
+                .userName(userService.getSigningUserId())
+                .imageList(box)
+                .build();
+
+        return myPageDto;
+
     }
 }
 

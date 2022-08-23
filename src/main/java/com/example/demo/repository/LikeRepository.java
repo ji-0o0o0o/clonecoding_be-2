@@ -26,6 +26,7 @@ public interface LikeRepository extends JpaRepository<Like,Long> {
     Like findByUsernameAndArticles(String username, Articles target);
 
 
+
 //    Collection<Object> findByArticlesAndUserName(String username, Long articlesId);
 }
 
