@@ -4,7 +4,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.ArticleDeleteDto;
 import com.example.demo.dto.ArticlesDto;
 import com.example.demo.dto.ArticlesRequestDto;
-import com.example.demo.dto.ArticlesResponseDto;
 import com.example.demo.service.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -36,7 +35,7 @@ public class ArticlesController {
 
     //메인 상세 페이지 조회
     @GetMapping("/{articlesId}")
-    public ArticlesResponseDto readArticles(@PathVariable Long articlesId){
+    public ArticlesRequestDto readArticles(@PathVariable Long articlesId){
         return articlesService.readArticles(articlesId);
     }
 
