@@ -110,7 +110,7 @@ public class ArticlesService {
                 if (datas.getArticles().getArticlesId().equals(findArticle.getArticlesId())) {
                     log.info("{}", datas);
                     long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
-                    CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+                    CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
                     commentBox.add(commentResponDto);
                 }
@@ -145,7 +145,7 @@ public class ArticlesService {
             if (datas.getArticles().getArticlesId().equals(articlesId)) {
                 log.info("{}", datas);
                 long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
-                CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+                CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
                 commentBox.add(commentResponDto);
             }
@@ -209,7 +209,7 @@ public class ArticlesService {
             if (datas.getArticles().getArticlesId().equals(articlesId)) {
                 log.info("{}", datas);
                 long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
-                CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+                CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
                 commentBox.add(commentResponDto);
             }

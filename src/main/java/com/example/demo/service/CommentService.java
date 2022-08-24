@@ -61,7 +61,7 @@ public class CommentService {
 
         long rightNow = ChronoUnit.MINUTES.between(comment.getCreatedAt(), LocalDateTime.now());
 
-        CommentResponDto commentResponDto = new CommentResponDto(comment, userService.getSigningUserId(), time.times(rightNow));
+        CommentResponDto commentResponDto = new CommentResponDto(comment, time.times(rightNow));
 
 
         return commentResponDto;
