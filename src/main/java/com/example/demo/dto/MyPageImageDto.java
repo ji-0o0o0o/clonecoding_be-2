@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 public class MyPageImageDto {
 
-    private List<String> image;
+    private String image;
     private Long articlesId;
 
 }

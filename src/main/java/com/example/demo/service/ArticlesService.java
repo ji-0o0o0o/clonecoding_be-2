@@ -15,6 +15,7 @@ import com.example.demo.repository.LikeRepository;
 import com.example.demo.service.s3.S3Uploader;
 import com.example.demo.util.Time;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -229,17 +231,28 @@ public class ArticlesService {
         List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
         log.info("{}", datas);
         List<String> resultBox = new ArrayList<>();
+        List<MyPageImageDto> imageBox  = new ArrayList<>();
 
 //      이미지 첨부
         List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
         for (ImagePostEntity imagePostEntity : target) {
             resultBox.add(imagePostEntity.getImage());
+
+
+            MyPageImageDto myPageImageDto = MyPageImageDto.builder()
+                    .articlesId(imagePostEntity.getArticlesImageId())
+                    .image(imagePostEntity.getImage())
+                    .build();
+            imageBox.add(myPageImageDto);
         }
+
+        Collections.reverse(imageBox);
+
 
         MyPageDto myPageDto = MyPageDto.builder()
                 .articlesCount(target.size())
                 .userName(userService.getSigningUserId())
-                .image(resultBox)
+                .imageList(imageBox)
                 .build();
 
         return myPageDto;
