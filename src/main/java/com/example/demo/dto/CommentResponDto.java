@@ -18,13 +18,6 @@ public class CommentResponDto {
     private String comment;
     private String UserName;
 
-//    public CommentResponDto(CommentEntity commentEntity, String userName, String createAt) {
-//        this.articlesId = commentEntity.getArticlesCommentId();
-//        this.createAt = createAt;
-//        this.commentId = commentEntity.getCommentId();
-//        this.comment = commentEntity.getComment();
-//        this.UserName = userName;
-//}
 
     public CommentResponDto(CommentEntity commentEntity,  String createAt) {
         this.articlesId = commentEntity.getArticlesCommentId();

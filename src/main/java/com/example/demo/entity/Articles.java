@@ -45,20 +45,6 @@ public class Articles extends TimeStamped {
 
 
 
-
-
-//    @JoinColumn
-//    @JsonBackReference
-//    @JsonIgnore
-//    private Boolean isArticlesLike = false;
-
-
-//    public Articles(ArticlesDto articlesDto, String userName) {
-//        this.content = articlesDto.getContent();
-////        this.image = image;
-//        this.userName = userName;
-//    }
-
     public Articles(ArticlesDto articlesDto,String userName, List<ImagePostEntity> imageList) {
         this.content = articlesDto.getContent();
         this.userName = userName;
@@ -66,11 +52,6 @@ public class Articles extends TimeStamped {
     }
 
 
-//    public Articles(ArticlesDto articlesDto,String userName, List<ImagePostEntity> imageList) {
-//        this.content = articlesDto.getContent();
-//        this.userName = userName;
-//        this.imageList = imageList;
-//    }
 
     public Articles(ArticlesDto articlesDto,String userName) {
         this.content = articlesDto.getContent();
@@ -81,10 +62,6 @@ public class Articles extends TimeStamped {
         this.content = articlesDto.getContent();
     }
 
-//    public void setImage(String url) {
-//        this.image = url;
-//    }
-
 
     public void addComment(CommentEntity comment) {
         this.commentList.add(comment);
@@ -94,8 +71,5 @@ public class Articles extends TimeStamped {
         this.commentCount = commentCount;
     }
 
-//    @OneToMany(mappedBy = "article") //생성 삭제가 많이 일어나니까 mappedBy
-//    @JsonIgnore
-//    private List<Like> likeList = new ArrayList<>();
 
 }

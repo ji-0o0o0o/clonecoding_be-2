@@ -18,9 +18,4 @@ public class MyPageDto {
 
     private List<SecondImageDto> imageList;
 
-//    public MyPageDto(ImagePostEntity imagePostEntity, int articlesCount, List<SecondImageDto> imageList) {
-//        this.userName = imagePostEntity.getUserName();
-//        this.articlesCount = articlesCount;
-//        this.imageList = imageList;
-//    }
 }

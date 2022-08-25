@@ -4,6 +4,7 @@ import com.example.demo.dto.*;
 import com.example.demo.entity.Articles;
 import com.example.demo.entity.CommentEntity;
 import com.example.demo.entity.ImagePostEntity;
+import com.example.demo.entity.Like;
 import com.example.demo.exception.ErrorType;
 import com.example.demo.exception.EveryExceptions.NullPointerException;
 import com.example.demo.repository.ArticlesRepository;
@@ -96,7 +97,17 @@ public class ArticlesService {
         List<ArticlesRequestDto> articlesRequestDtoList = new ArrayList<>();
 
 
+
         for (Articles findArticle : articlesList) {
+
+            Like like = likeRepository.findByUsernameAndArticles(userService.getSigningUserId(), findArticle);
+
+            boolean isArticlesLike;
+            if (like != null) {
+                isArticlesLike = true;
+            } else {
+                isArticlesLike = false;
+            }
 
             List<String> data = new ArrayList<>();
 
@@ -118,7 +129,7 @@ public class ArticlesService {
             }
 
             long commentRightNow = ChronoUnit.MINUTES.between(findArticle.getCreatedAt(), LocalDateTime.now());
-            articlesRequestDtoList.add(new ArticlesRequestDto(findArticle, data, time.times(commentRightNow), commentBox));
+            articlesRequestDtoList.add(new ArticlesRequestDto(findArticle, data, time.times(commentRightNow), commentBox, isArticlesLike));
         }
 
 
@@ -195,7 +206,6 @@ public class ArticlesService {
 
         Articles articles = articlesRepository.findById(articlesId)
                 .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
-//        작성시간
 
 
         long articlesRightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
@@ -218,7 +228,8 @@ public class ArticlesService {
             data.add(imagePostEntity.getImage());
         }
 
-        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data, time.times(articlesRightNow), commentBox);
+        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data,
+                time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
     }
 

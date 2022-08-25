@@ -24,6 +24,8 @@ public class ArticlesRequestDto {
 //    private List<ImagePostEntity> images;
     private List<String> image;
     private List<CommentResponDto> commentList;
+    private boolean isArticlesLike;
+
 
 
 
@@ -51,5 +53,19 @@ public class ArticlesRequestDto {
         this.commentList = commentList;
         this.image = image;
     }
+
+//    메인 전체조회
+public ArticlesRequestDto(Articles articles,List<String> image, String createAt, List<CommentResponDto> commentList, boolean isArticlesLike) {
+    this.articlesId = articles.getArticlesId();
+//        this.images = articles.getImage();
+    this.userName = articles.getUserName();
+    this.likeCount = articles.getLikeCount();
+    this.content = articles.getContent();
+    this.createAt = createAt;
+    this.CommentCount = articles.getCommentCount();
+    this.commentList = commentList;
+    this.image = image;
+    this.isArticlesLike = isArticlesLike;
+}
 
 }

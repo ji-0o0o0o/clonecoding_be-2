@@ -37,14 +37,7 @@ public class CommentService {
     }
 
 
-//    @Transactional
-//    public CommentEntity postComment(Long id, CommentDto commentDto) {
-//        Articles articles = articlesRepository.findById(id).orElseThrow(
-//                () -> new NullPointerException("게시물이 존재하지 않습니다")
-//        );
-//        CommentEntity comment = new CommentEntity(articles, commentDto, userService.getSigningUserId());
-//        return comment;
-//    }
+
 
     @Transactional
     public CommentResponDto postComment(Long id, CommentDto commentDto) {
