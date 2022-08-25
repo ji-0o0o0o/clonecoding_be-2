@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class CommentEntity extends TimeStamped {
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "articles_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Articles articles;
 
     @Column

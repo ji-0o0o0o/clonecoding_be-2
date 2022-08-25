@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.example.demo.entity.ImagePostEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,11 @@ public class MyPageDto {
 
     private int articlesCount;
 
-    private List<MyPageImageDto> imageList;
+    private List<SecondImageDto> imageList;
 
+//    public MyPageDto(ImagePostEntity imagePostEntity, int articlesCount, List<SecondImageDto> imageList) {
+//        this.userName = imagePostEntity.getUserName();
+//        this.articlesCount = articlesCount;
+//        this.imageList = imageList;
+//    }
 }

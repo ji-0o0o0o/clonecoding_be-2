@@ -3,10 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Articles;
 import com.example.demo.entity.CommentEntity;
-import com.example.demo.dto.ImagePostDto;
 import com.example.demo.entity.ImagePostEntity;
 import com.example.demo.exception.ErrorType;
-import com.example.demo.exception.EveryExceptions.IllegalArgumentException;
 import com.example.demo.exception.EveryExceptions.NullPointerException;
 import com.example.demo.repository.ArticlesRepository;
 import com.example.demo.repository.CommentRepository;
@@ -15,7 +13,6 @@ import com.example.demo.repository.LikeRepository;
 import com.example.demo.service.s3.S3Uploader;
 import com.example.demo.util.Time;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -98,7 +96,6 @@ public class ArticlesService {
         List<ArticlesRequestDto> articlesRequestDtoList = new ArrayList<>();
 
 
-
         for (Articles findArticle : articlesList) {
 
             List<String> data = new ArrayList<>();
@@ -123,7 +120,7 @@ public class ArticlesService {
 
             long commentRightNow = ChronoUnit.MINUTES.between(findArticle.getCreatedAt(), LocalDateTime.now());
             articlesRequestDtoList.add(new ArticlesRequestDto(findArticle, data, time.times(commentRightNow), commentBox));
-            }
+        }
 
 
         return articlesRequestDtoList;
@@ -158,7 +155,7 @@ public class ArticlesService {
         for (ImagePostEntity imagePostEntity : target) {
             data.add(imagePostEntity.getImage());
         }
-        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles,data,  time.times(articlesRightNow), commentBox);
+        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data, time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
     }
 
@@ -221,36 +218,54 @@ public class ArticlesService {
         for (ImagePostEntity imagePostEntity : target) {
             data.add(imagePostEntity.getImage());
         }
+
         ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data, time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
     }
 
 
-    //  마이페이지 메인
     public MyPageDto getMypage() {
-        List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
-        log.info("{}", datas);
-        List<String> resultBox = new ArrayList<>();
-        List<MyPageImageDto> imageBox  = new ArrayList<>();
+        List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
+
+        List<SecondImageDto> imageBox = new ArrayList<>();
 
 //      이미지 첨부
-        List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
+
         for (ImagePostEntity imagePostEntity : target) {
-            resultBox.add(imagePostEntity.getImage());
 
 
-            MyPageImageDto myPageImageDto = MyPageImageDto.builder()
+            //          중간
+            List<ImageDetailResponseDto> imageDetailBox = new ArrayList<>();
+
+            SecondImageDto secondImageDto = SecondImageDto.builder()
                     .articlesId(imagePostEntity.getArticlesImageId())
-                    .image(imagePostEntity.getImage())
+                    .images(imageDetailBox)
                     .build();
-            imageBox.add(myPageImageDto);
+            imageBox.add(secondImageDto);
+
+//          최종
+            ImageDetailResponseDto imageDetailResponseDto = ImageDetailResponseDto.builder()
+                    .Image(imagePostEntity.getImage())
+                    .imageId(imagePostEntity.getImageId())
+                    .build();
+            imageDetailBox.add(imageDetailResponseDto);
+
+
         }
+
+        for (int i = 0; i < imageBox.size(); i++) {
+            for (int j = 1; j < imageBox.size(); j++) {
+                if (imageBox.get(i).getArticlesId().equals(imageBox.get(j).getArticlesId())) {
+                    imageBox.remove(j);
+                }
+            }
+        }
+
 
         Collections.reverse(imageBox);
 
-
         MyPageDto myPageDto = MyPageDto.builder()
-                .articlesCount(target.size())
+                .articlesCount(imageBox.size())
                 .userName(userService.getSigningUserId())
                 .imageList(imageBox)
                 .build();
@@ -258,5 +273,46 @@ public class ArticlesService {
         return myPageDto;
 
     }
+
+
+//      마이페이지 메인
+//    public MyPageDto getMypage() {
+//        List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
+//        log.info("{}", datas);
+//        List<SecondImageDto> imageBox  = new ArrayList<>();
+//        List<ImageDetailResponseDto> imageDetailBox  = new ArrayList<>();
+//
+//
+
+//      이미지 첨부
+//        List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
+//        for (ImagePostEntity imagePostEntity : target) {
+//
+//            ImageDetailResponseDto imageDetailResponseDto = ImageDetailResponseDto.builder()
+//                    .Image(imagePostEntity.getImage())
+//                    .imageId(imagePostEntity.getImageId())
+//                    .build();
+//            imageDetailBox.add(imageDetailResponseDto);
+//
+//                SecondImageDto secondImageDto = SecondImageDto.builder()
+//                        .articlesId(imagePostEntity.getArticlesImageId())
+//                        .images(imageDetailBox)
+//                        .build();
+//                imageBox.add(secondImageDto);
+//
+//        }
+//
+//        Collections.reverse(imageBox);
+//
+//
+//        MyPageDto myPageDto = MyPageDto.builder()
+//                .articlesCount(target.size())
+//                .userName(userService.getSigningUserId())
+//                .imageList(imageBox)
+//                .build();
+//
+//        return myPageDto;
+//
+//    }
 }
 
