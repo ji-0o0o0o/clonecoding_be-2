@@ -61,20 +61,20 @@ public class LikeService {
         Like like = new Like(target, username, isArticlesLike);
 
 
-        Long likecount = articlesRepository.findById(articlesId).get().getLikeCount();
+        long likecount = articlesRepository.findById(articlesId).get().getLikeCount();
 
         if (likeRepository.findByArticlesAndUsername(target, username).isEmpty()) {
             articlesRepository.uplikeCount(target.getArticlesId());
             likeRepository.save(like);
 
-            LikeDto likeDto = new LikeDto(articlesId, likecount, true);
+            LikeDto likeDto = new LikeDto(articlesId, likecount+1, true);
             return likeDto;
         } else {
             articlesRepository.downlikeCount(target.getArticlesId());
             likeRepository.delete(likeRepository.findByUsernameAndArticles(username, target));
 
         }
-            LikeDto likeDto = new LikeDto(articlesId, likecount, false);
+            LikeDto likeDto = new LikeDto(articlesId, likecount-1, false);
         return likeDto;
 
 //        Optional<User> usernames = userRepository.findById(Long.valueOf(username));

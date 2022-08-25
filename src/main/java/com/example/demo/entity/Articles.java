@@ -30,12 +30,12 @@ public class Articles extends TimeStamped {
 
 
     @Column
-    private Long likeCount=0L;
+    private long likeCount=0L;
 
     @Column
     private long commentCount=0L;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "articles")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<ImagePostEntity> imageList;
 

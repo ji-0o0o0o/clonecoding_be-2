@@ -5,6 +5,8 @@ import com.example.demo.dto.MyPageDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.List;
@@ -34,6 +36,7 @@ public class ImagePostEntity {
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name="articles_Id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Articles articles;
 
     private Long articlesImageId;

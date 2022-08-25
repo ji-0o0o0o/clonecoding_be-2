@@ -17,4 +17,5 @@ public interface ImagePostRepository extends JpaRepository<ImagePostEntity, Long
 
     List<ImagePostEntity> findAllByUserName(String articlesId);
 
+    List<ImagePostEntity> deleteAllByArticlesImageId(Long articlesId);
 }

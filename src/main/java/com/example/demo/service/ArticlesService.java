@@ -105,7 +105,6 @@ public class ArticlesService {
 //
             for (CommentEntity datas : commentList) {
                 if (datas.getArticles().getArticlesId().equals(findArticle.getArticlesId())) {
-                    log.info("{}", datas);
                     long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
                     CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
@@ -140,7 +139,6 @@ public class ArticlesService {
 //
         for (CommentEntity datas : commentList) {
             if (datas.getArticles().getArticlesId().equals(articlesId)) {
-                log.info("{}", datas);
                 long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
                 CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
@@ -173,8 +171,9 @@ public class ArticlesService {
         }
         return null;
     }
-    //메인 페이지 삭제
 
+    //메인 페이지 삭제
+    @Transactional
     public ArticleDeleteDto deleteArticles(Long articlesId) {
         Articles articles = articlesRepository.findById(articlesId)
                 .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
@@ -185,6 +184,7 @@ public class ArticlesService {
 
         if (user.equals(articles.getUserName())) {
             articlesRepository.delete(articles);
+            imagePostRespository.deleteAllByArticlesImageId(articlesId);
             return articleDeleteDto1;
         } else return articleDeleteDto;
     }
@@ -204,7 +204,6 @@ public class ArticlesService {
 //
         for (CommentEntity datas : commentList) {
             if (datas.getArticles().getArticlesId().equals(articlesId)) {
-                log.info("{}", datas);
                 long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
                 CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
@@ -253,11 +252,23 @@ public class ArticlesService {
 
         }
 
-        for (int i = 0; i < imageBox.size(); i++) {
-            for (int j = 1; j < imageBox.size(); j++) {
-                if (imageBox.get(i).getArticlesId().equals(imageBox.get(j).getArticlesId())) {
-                    imageBox.remove(j);
-                }
+//        for (int i = 0; i < imageBox.size(); i++) {
+//            for (int j = 1; j < imageBox.size(); j++) {
+//                if (imageBox.get(i).getArticlesId().equals(imageBox.get(j).getArticlesId())) {
+//                    imageBox.remove(j);
+//                }
+//            }
+//        }
+
+        for (int i = 0; i < imageBox.size()-1; i++) {
+            if (imageBox.get(i).getArticlesId().equals(imageBox.get(i+1).getArticlesId())) {
+                imageBox.remove(i+1);
+            }
+        }
+
+        for (int i = 0; i < imageBox.size()-1; i++) {
+            if (imageBox.get(i).getArticlesId().equals(imageBox.get(i+1).getArticlesId())) {
+                imageBox.remove(i+1);
             }
         }
 
