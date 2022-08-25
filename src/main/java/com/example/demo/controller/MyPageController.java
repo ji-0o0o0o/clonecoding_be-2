@@ -11,6 +11,8 @@ import com.example.demo.dto.MyPageDto;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RequestMapping("/api/mypage")
 @RestController
 public class MyPageController {

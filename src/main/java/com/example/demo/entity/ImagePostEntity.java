@@ -1,10 +1,13 @@
 package com.example.demo.entity;
 
+import com.example.demo.dto.ImageDetailResponseDto;
+import com.example.demo.dto.MyPageDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -34,6 +37,7 @@ public class ImagePostEntity {
     private Articles articles;
 
     private Long articlesImageId;
+
 
 
 
