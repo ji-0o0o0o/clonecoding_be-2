@@ -3,20 +3,29 @@ package com.example.demo.service;
 import com.example.demo.dto.*;
 import com.example.demo.entity.Articles;
 import com.example.demo.entity.CommentEntity;
+import com.example.demo.entity.ImagePostEntity;
+import com.example.demo.entity.Like;
+import com.example.demo.exception.ErrorType;
+import com.example.demo.exception.EveryExceptions.NullPointerException;
 import com.example.demo.repository.ArticlesRepository;
 import com.example.demo.repository.CommentRepository;
+import com.example.demo.repository.ImagePostRepository;
 import com.example.demo.repository.LikeRepository;
 import com.example.demo.service.s3.S3Uploader;
 import com.example.demo.util.Time;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+
 @Service
 @Slf4j
 public class ArticlesService {
@@ -27,44 +36,51 @@ public class ArticlesService {
     private final S3Uploader s3Uploader;
     private final Time time;
     private final LikeRepository likeRepository;
+    private final ImagePostRepository imagePostRespository;
 
     public ArticlesService(ArticlesRepository articlesRepository,
                            CommentRepository commentRepository, UserService userService,
-                           S3Uploader s3Uploader, Time time, LikeRepository likeRepository) {
+                           S3Uploader s3Uploader, Time time, LikeRepository likeRepository,
+                           ImagePostRepository imagePostRepository) {
         this.articlesRepository = articlesRepository;
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.s3Uploader = s3Uploader;
         this.time = time;
         this.likeRepository = likeRepository;
+        this.imagePostRespository = imagePostRepository;
     }
 
-    private Long getTime() {
-        Articles articles = new Articles();
-        return ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
-
-    }
 
     // 메안페이지 생성
     public ArticlesRequestDto postArticles(List<MultipartFile> multipartFile, ArticlesDto articlesDto) throws IOException {
-
         if (multipartFile != null) {
-            //          이미지 업로드
-            List<String> imageList = new ArrayList<>();
-            imageList.add(s3Uploader.upload(multipartFile));
-            String image = s3Uploader.upload(multipartFile);
+
             String username = userService.getSigningUserId();
 
-            Articles articles = new Articles(articlesDto, image, username);
+            Articles articles = new Articles(articlesDto, username);
             articlesRepository.save(articles);
-//            작성시간 조회
 
+            List<ImagePostEntity> imgbox = new ArrayList<>();
+            //          이미지 업로드
+            for (MultipartFile uploadedFile : multipartFile) {
+
+                ImagePostEntity imagePostEntity = ImagePostEntity.builder()
+                        .image(s3Uploader.upload(uploadedFile))
+                        .userName(userService.getSigningUserId())
+                        .articlesImageId(articles.getArticlesId())
+                        .build();
+                imgbox.add(imagePostEntity);
+
+                imagePostRespository.save(imagePostEntity);
+            }
             long rightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
             ArticlesRequestDto articlesRequestDto = new ArticlesRequestDto(articles, time.times(rightNow));
             return articlesRequestDto;
 
+
         } else {
-            Articles articles = new Articles(articlesDto , userService.getSigningUserId());
+            Articles articles = new Articles(articlesDto, userService.getSigningUserId());
             articlesRepository.save(articles);
 //            작성시간 조회
 
@@ -80,117 +96,245 @@ public class ArticlesService {
         List<Articles> articlesList = articlesRepository.findAllByOrderByCreatedAtDesc();
         List<ArticlesRequestDto> articlesRequestDtoList = new ArrayList<>();
 
-        for (Articles articles:articlesList) {
 
-        //  작성시간 조회
-            long rightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
-            articlesRequestDtoList.add(new ArticlesRequestDto(articles, time.times(rightNow)));
+
+        for (Articles findArticle : articlesList) {
+
+            Like like = likeRepository.findByUsernameAndArticles(userService.getSigningUserId(), findArticle);
+
+            boolean isArticlesLike;
+            if (like != null) {
+                isArticlesLike = true;
+            } else {
+                isArticlesLike = false;
+            }
+
+            List<String> data = new ArrayList<>();
+
+            List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(findArticle.getArticlesId());
+            List<CommentResponDto> commentBox = new ArrayList<>();
+//
+            for (CommentEntity datas : commentList) {
+                if (datas.getArticles().getArticlesId().equals(findArticle.getArticlesId())) {
+                    long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
+                    CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
+
+                    commentBox.add(commentResponDto);
+                }
+            }
+
+            List<ImagePostEntity> target = imagePostRespository.findAllByArticlesImageId(findArticle.getArticlesId());
+            for (ImagePostEntity imagePostEntity : target) {
+                data.add(imagePostEntity.getImage());
+            }
+
+            long commentRightNow = ChronoUnit.MINUTES.between(findArticle.getCreatedAt(), LocalDateTime.now());
+            articlesRequestDtoList.add(new ArticlesRequestDto(findArticle, data, time.times(commentRightNow), commentBox, isArticlesLike));
         }
+
+
         return articlesRequestDtoList;
     }
 
     //메인 상세 페이지 조회
-    public ArticlesResponseDto readArticles(Long articlesId) {
+    public ArticlesRequestDto readArticles(Long articlesId) {
 
         Articles articles = articlesRepository.findById(articlesId)
-                .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
+                .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
 
-        List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
-        List<CommentResponDto> commentBox = new ArrayList<>();
 
         long articlesRightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
 
+        List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
+        List<CommentResponDto> commentBox = new ArrayList<>();
+//
         for (CommentEntity datas : commentList) {
-            long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
-            CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+            if (datas.getArticles().getArticlesId().equals(articlesId)) {
+                long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
+                CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
-            commentBox.add(commentResponDto);
-
+                commentBox.add(commentResponDto);
+            }
         }
 
-        ArticlesResponseDto articlesResponseDto = new ArticlesResponseDto(articles, time.times(articlesRightNow), commentBox);
+
+        List<String> data = new ArrayList<>();
+
+        List<ImagePostEntity> target = imagePostRespository.findAllByArticlesImageId(articlesId);
+        for (ImagePostEntity imagePostEntity : target) {
+            data.add(imagePostEntity.getImage());
+        }
+        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data, time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
-
-
     }
 
     //메인 페이지 수정
     @Transactional
     public ArticlesRequestDto updateArticles(Long articlesId, ArticlesDto articlesDto) {
         Articles articles = articlesRepository.findById(articlesId)
-                .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
+                .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
         String user = userService.getSigningUserId();
 
         ArticlesRequestDto articlesRequestDto = new ArticlesRequestDto(articles, null);
-        if(user.equals(articles.getUserName())){
+        if (user.equals(articles.getUserName())) {
             articles.updateArticles(articlesDto);
-//            return ResponseEntity.status(HttpStatus.OK).body(articlesDto).toString()+"";//저장한 정보 출력해준다
             return articlesRequestDto;
-        }return null;
+        }
+        return null;
     }
-    //메인 페이지 삭제
 
-    public String deleteArticles(Long articlesId) {
+    //메인 페이지 삭제
+    @Transactional
+    public ArticleDeleteDto deleteArticles(Long articlesId) {
         Articles articles = articlesRepository.findById(articlesId)
-                .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
+                .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
         String user = userService.getSigningUserId();
 
-        if(user.equals(articles.getUserName())){
+        ArticleDeleteDto articleDeleteDto = new ArticleDeleteDto(articlesId, "삭제가 실패하였습니다.");
+        ArticleDeleteDto articleDeleteDto1 = new ArticleDeleteDto(articlesId, "삭제가 되었습니다.");
+
+        if (user.equals(articles.getUserName())) {
             articlesRepository.delete(articles);
-            return "삭제가 되었습니다.";
-        }else return "삭제가 실패하였습니다.";
+            imagePostRespository.deleteAllByArticlesImageId(articlesId);
+            return articleDeleteDto1;
+        } else return articleDeleteDto;
     }
 
 
     //마이페이지 상세페이지
-    public ArticlesResponseDto readMypage(Long articlesId) {
+    public ArticlesRequestDto readMypage(Long articlesId) {
 
         Articles articles = articlesRepository.findById(articlesId)
-                .orElseThrow(()->new IllegalArgumentException("해당 게시물이 존재하지않습니다."));
+                .orElseThrow(() -> new NullPointerException(ErrorType.NotExistArticles));
 
-//        작성시간
-
-        List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
-        List<CommentResponDto> commentBox = new ArrayList<>();
 
         long articlesRightNow = ChronoUnit.MINUTES.between(articles.getCreatedAt(), LocalDateTime.now());
-
-
+        List<CommentEntity> commentList = commentRepository.findByArticles_ArticlesId(articlesId);
+        List<CommentResponDto> commentBox = new ArrayList<>();
+//
         for (CommentEntity datas : commentList) {
-            long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
-            CommentResponDto commentResponDto = new CommentResponDto(datas, userService.getSigningUserId(), time.times(commentRightNow));
+            if (datas.getArticles().getArticlesId().equals(articlesId)) {
+                long commentRightNow = ChronoUnit.MINUTES.between(datas.getCreatedAt(), LocalDateTime.now());
+                CommentResponDto commentResponDto = new CommentResponDto(datas, time.times(commentRightNow));
 
-            commentBox.add(commentResponDto);
+                commentBox.add(commentResponDto);
+            }
+        }
+//        이미지 첨부
+        List<String> data = new ArrayList<>();
 
+        List<ImagePostEntity> target = imagePostRespository.findAllByArticlesImageId(articlesId);
+        for (ImagePostEntity imagePostEntity : target) {
+            data.add(imagePostEntity.getImage());
         }
 
-        ArticlesResponseDto articlesResponseDto = new ArticlesResponseDto(articles, time.times(articlesRightNow), commentBox);
+        ArticlesRequestDto articlesResponseDto = new ArticlesRequestDto(articles, data,
+                time.times(articlesRightNow), commentBox);
         return articlesResponseDto;
+    }
+
 
     public MyPageDto getMypage() {
-        List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
-        log.info("{}", datas);
+        List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
 
-        List<MyPageImageDto> box = new ArrayList<>();
-        for (Articles data : datas) {
-            System.out.println(data.getImage());
-            MyPageImageDto myPageImageDto = MyPageImageDto.builder()
-                    .articlesId(data.getArticlesId())
-                    .image(data.getImage())
+        List<SecondImageDto> imageBox = new ArrayList<>();
+
+//      이미지 첨부
+
+        for (ImagePostEntity imagePostEntity : target) {
+
+
+            //          중간
+            List<ImageDetailResponseDto> imageDetailBox = new ArrayList<>();
+
+            SecondImageDto secondImageDto = SecondImageDto.builder()
+                    .articlesId(imagePostEntity.getArticlesImageId())
+                    .images(imageDetailBox)
                     .build();
-            box.add(myPageImageDto);
+            imageBox.add(secondImageDto);
+
+//          최종
+            ImageDetailResponseDto imageDetailResponseDto = ImageDetailResponseDto.builder()
+                    .Image(imagePostEntity.getImage())
+                    .imageId(imagePostEntity.getImageId())
+                    .build();
+            imageDetailBox.add(imageDetailResponseDto);
+
+
+        }
+
+//        for (int i = 0; i < imageBox.size(); i++) {
+//            for (int j = 1; j < imageBox.size(); j++) {
+//                if (imageBox.get(i).getArticlesId().equals(imageBox.get(j).getArticlesId())) {
+//                    imageBox.remove(j);
+//                }
+//            }
+//        }
+
+        for (int i = 0; i < imageBox.size()-1; i++) {
+            if (imageBox.get(i).getArticlesId().equals(imageBox.get(i+1).getArticlesId())) {
+                imageBox.remove(i+1);
+            }
+        }
+
+        for (int i = 0; i < imageBox.size()-1; i++) {
+            if (imageBox.get(i).getArticlesId().equals(imageBox.get(i+1).getArticlesId())) {
+                imageBox.remove(i+1);
+            }
         }
 
 
+        Collections.reverse(imageBox);
 
         MyPageDto myPageDto = MyPageDto.builder()
-                .articlesCount(datas.size())
+                .articlesCount(imageBox.size())
                 .userName(userService.getSigningUserId())
-                .imageList(box)
+                .imageList(imageBox)
                 .build();
 
         return myPageDto;
 
     }
+
+
+//      마이페이지 메인
+//    public MyPageDto getMypage() {
+//        List<Articles> datas = articlesRepository.findAllByUserName(userService.getSigningUserId());
+//        log.info("{}", datas);
+//        List<SecondImageDto> imageBox  = new ArrayList<>();
+//        List<ImageDetailResponseDto> imageDetailBox  = new ArrayList<>();
+//
+//
+
+//      이미지 첨부
+//        List<ImagePostEntity> target = imagePostRespository.findAllByUserName(userService.getSigningUserId());
+//        for (ImagePostEntity imagePostEntity : target) {
+//
+//            ImageDetailResponseDto imageDetailResponseDto = ImageDetailResponseDto.builder()
+//                    .Image(imagePostEntity.getImage())
+//                    .imageId(imagePostEntity.getImageId())
+//                    .build();
+//            imageDetailBox.add(imageDetailResponseDto);
+//
+//                SecondImageDto secondImageDto = SecondImageDto.builder()
+//                        .articlesId(imagePostEntity.getArticlesImageId())
+//                        .images(imageDetailBox)
+//                        .build();
+//                imageBox.add(secondImageDto);
+//
+//        }
+//
+//        Collections.reverse(imageBox);
+//
+//
+//        MyPageDto myPageDto = MyPageDto.builder()
+//                .articlesCount(target.size())
+//                .userName(userService.getSigningUserId())
+//                .imageList(imageBox)
+//                .build();
+//
+//        return myPageDto;
+//
+//    }
 }
 

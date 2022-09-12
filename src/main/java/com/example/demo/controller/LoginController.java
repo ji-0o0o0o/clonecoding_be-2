@@ -8,7 +8,6 @@ import com.example.demo.jwt.TokenProvider;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CustomUserDetailsService;
 import com.example.demo.service.LoginService;
-import com.example.demo.util.UserEmailPasswordAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")

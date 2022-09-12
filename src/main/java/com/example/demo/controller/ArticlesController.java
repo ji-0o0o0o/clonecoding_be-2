@@ -1,9 +1,9 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.dto.ArticleDeleteDto;
 import com.example.demo.dto.ArticlesDto;
 import com.example.demo.dto.ArticlesRequestDto;
-import com.example.demo.dto.ArticlesResponseDto;
 import com.example.demo.service.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -26,6 +26,7 @@ public class ArticlesController {
                                      @RequestPart (required = false) List<MultipartFile> multipartFile) throws IOException {
         return articlesService.postArticles(multipartFile, articlesDto);
     }
+
     //메인 페이지 작성글 목록 조회
     @GetMapping("")
     public List<ArticlesRequestDto> readAllPost() {
@@ -34,7 +35,7 @@ public class ArticlesController {
 
     //메인 상세 페이지 조회
     @GetMapping("/{articlesId}")
-    public ArticlesResponseDto readArticles(@PathVariable Long articlesId){
+    public ArticlesRequestDto readArticles(@PathVariable Long articlesId){
         return articlesService.readArticles(articlesId);
     }
 
@@ -48,7 +49,7 @@ public class ArticlesController {
     //메인 페이지 삭제
 
     @DeleteMapping("/{articlesId}")
-    public String deleteArticles(@PathVariable Long articlesId) {
+    public ArticleDeleteDto deleteArticles(@PathVariable Long articlesId) {
         return articlesService.deleteArticles(articlesId);
     }
 

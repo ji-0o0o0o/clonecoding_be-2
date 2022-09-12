@@ -41,11 +41,11 @@ public class User {
     private AuthorityEntity authorityEntity;
 
 
-//    public User(String username, String password, String nickname, boolean activated, AuthorityEntity authorityEntity) {
-//        this.username = username;
-//        this.password = password;
-//        this.nickname = nickname;
-//        this.activated = activated;
-//        this.authorityEntity = authorityEntity;
-//    }
+    public User(String username, String password, String nickname, boolean activated, AuthorityEntity authorityEntity) {
+        this.userName = username;
+        this.password = password;
+        this.userEmail = nickname;
+        this.activated = activated;
+        this.authorityEntity = authorityEntity;
+    }
 }

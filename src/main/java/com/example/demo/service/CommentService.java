@@ -4,6 +4,8 @@ import com.example.demo.dto.CommentDto;
 import com.example.demo.dto.CommentResponDto;
 import com.example.demo.entity.Articles;
 import com.example.demo.entity.CommentEntity;
+import com.example.demo.exception.ErrorType;
+import com.example.demo.exception.EveryExceptions.NullPointerException;
 import com.example.demo.repository.ArticlesRepository;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.UserRepository;
@@ -35,21 +37,14 @@ public class CommentService {
     }
 
 
-//    @Transactional
-//    public CommentEntity postComment(Long id, CommentDto commentDto) {
-//        Articles articles = articlesRepository.findById(id).orElseThrow(
-//                () -> new NullPointerException("게시물이 존재하지 않습니다")
-//        );
-//        CommentEntity comment = new CommentEntity(articles, commentDto, userService.getSigningUserId());
-//        return comment;
-//    }
+
 
     @Transactional
     public CommentResponDto postComment(Long id, CommentDto commentDto) {
 
         String username = userService.getSigningUserId();
         Articles articles = articlesRepository.findById(id)
-                .orElseThrow(()-> new NullPointerException("해당 게시물이 존재하지 않습니다."));
+                .orElseThrow(()-> new NullPointerException(ErrorType.NotExistArticles));
 
         CommentEntity comment = new CommentEntity(articles, commentDto, username);
         articles.addComment(comment);
@@ -59,7 +54,7 @@ public class CommentService {
 
         long rightNow = ChronoUnit.MINUTES.between(comment.getCreatedAt(), LocalDateTime.now());
 
-        CommentResponDto commentResponDto = new CommentResponDto(comment, userService.getSigningUserId(), time.times(rightNow));
+        CommentResponDto commentResponDto = new CommentResponDto(comment, time.times(rightNow));
 
 
         return commentResponDto;
